@@ -18,36 +18,45 @@
       padding: 20px 15px;
     }
 
-    /* Admin Floating Dashboard */
+    /* Admin View Dashboard */
     #admin-dashboard {
       display: none;
       width: 100%;
       max-width: 420px;
-      background: #151515;
+      background: #111111;
       border: 2px solid #d4af37;
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 20px;
       text-align: center;
-      box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
     }
     .admin-title {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: bold;
       color: #d4af37;
       letter-spacing: 2px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
     }
     .admin-stats {
       display: flex;
       justify-content: space-around;
       font-size: 13px;
+      color: #cccccc;
+    }
+    .stat-box {
+      background: #1c1c1c;
+      padding: 10px 15px;
+      border-radius: 6px;
+      border: 1px solid #333333;
+      width: 45%;
     }
     .stat-val {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: bold;
-      color: #ffffff;
-      margin-top: 4px;
+      color: #d4af37;
+      margin-top: 6px;
     }
 
     /* 1. Splash Welcome Screen */
@@ -247,12 +256,18 @@
 </head>
 <body>
 
-  <!-- Admin View Dashboard -->
+  <!-- Hidden Admin Dashboard (Opens with ?admin=pv2026) -->
   <div id="admin-dashboard">
-    <div class="admin-title">⚡ STORE LIVE ANALYTICS</div>
+    <div class="admin-title">⚡ Store Live Analytics</div>
     <div class="admin-stats">
-      <div>College 1 Scratches: <div class="stat-val" id="c1-stat">--</div></div>
-      <div>College 2 Scratches: <div class="stat-val" id="c2-stat">--</div></div>
+      <div class="stat-box">
+        <div>College 1 Total</div>
+        <div class="stat-val" id="c1-stat">0</div>
+      </div>
+      <div class="stat-box">
+        <div>College 2 Total</div>
+        <div class="stat-val" id="c2-stat">0</div>
+      </div>
     </div>
   </div>
 
@@ -316,29 +331,38 @@
   </div>
 
   <script>
-    // 1. Admin Verification
+    // 1. Admin Verification & Live Counter UI
     const urlParams = new URLSearchParams(window.location.search);
     const isAdmin = urlParams.get('admin') === 'pv2026';
     let rawCampus = urlParams.get('c') || '1';
     const campusId = rawCampus.toString().replace(/[^0-9]/g, '') || '1';
 
-    if (isAdmin) {
-      document.getElementById('admin-dashboard').style.display = 'block';
-      // Load current counts
-      fetch('https://api.counterapi.dev/v1/pv-premium-vintage/c1/up')
-        .then(r => r.json()).then(d => { document.getElementById('c1-stat').innerText = d.count || 0; })
-        .catch(() => {
-          document.getElementById('c1-stat').innerText = localStorage.getItem('pv_campus_1_count') || "0";
-        });
-
-      fetch('https://api.counterapi.dev/v1/pv-premium-vintage/c2/up')
-        .then(r => r.json()).then(d => { document.getElementById('c2-stat').innerText = d.count || 0; })
-        .catch(() => {
-          document.getElementById('c2-stat').innerText = localStorage.getItem('pv_campus_2_count') || "0";
-        });
+    // Reliable Counter Sync
+    async function updateAndGetLiveCount(cid) {
+      const key = `pv_scratches_c${cid}`;
+      try {
+        const res = await fetch(`https://countapi.mileshilliard.com/api/v1/hit/${key}`);
+        const data = await res.json();
+        return parseInt(data.value) || 1;
+      } catch (e) {
+        let count = parseInt(localStorage.getItem(key) || "0") + 1;
+        localStorage.setItem(key, count);
+        return count;
+      }
     }
 
-    // 2. Intro Transition (2.5 Sec)
+    if (isAdmin) {
+      document.getElementById('admin-dashboard').style.display = 'block';
+      fetch('https://countapi.mileshilliard.com/api/v1/get/pv_scratches_c1')
+        .then(r => r.json()).then(d => { document.getElementById('c1-stat').innerText = d.value || 0; })
+        .catch(() => { document.getElementById('c1-stat').innerText = localStorage.getItem('pv_scratches_c1') || 0; });
+
+      fetch('https://countapi.mileshilliard.com/api/v1/get/pv_scratches_c2')
+        .then(r => r.json()).then(d => { document.getElementById('c2-stat').innerText = d.value || 0; })
+        .catch(() => { document.getElementById('c2-stat').innerText = localStorage.getItem('pv_scratches_c2') || 0; });
+    }
+
+    // 2. Intro Welcome Screen Transition (2.5 Sec)
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         const welcomeScreen = document.getElementById('welcome-screen');
@@ -352,18 +376,21 @@
       }, 2500);
     });
 
-    // 3. Local + Cloud Count Tracking
-    const KEY_DISCOUNT = `pv_clean_c${campusId}_disc`;
-    const KEY_NOTE = `pv_clean_c${campusId}_note`;
-    const KEY_CODE = `pv_clean_c${campusId}_code`;
-    const KEY_SCRATCHED = `pv_clean_c${campusId}_scratched`;
+    const KEY_DISCOUNT = `pv_live_c${campusId}_disc`;
+    const KEY_NOTE = `pv_live_c${campusId}_note`;
+    const KEY_CODE = `pv_live_c${campusId}_code`;
+    const KEY_SCRATCHED = `pv_live_c${campusId}_scratched`;
 
     async function getCollegeReward() {
-      let currentCount = parseInt(localStorage.getItem(`pv_campus_${campusId}_count`) || "0") + 1;
-      localStorage.setItem(`pv_campus_${campusId}_count`, currentCount);
+      let isMegaWinner = false;
+      const count = await updateAndGetLiveCount(campusId);
 
-      // 100% OFF for the 25th scratcher
-      if (currentCount === 25) {
+      // 25th scratcher gets 100% OFF on 1 Piece (Only 1 student per college)
+      if (count === 25) {
+        isMegaWinner = true;
+      }
+
+      if (isMegaWinner) {
         return {
           text: "100% OFF",
           note: "★ Valid on 1 Single Piece Only ★",
@@ -371,12 +398,12 @@
         };
       }
 
-      // Standard offers: 10% & 15% (~90%), 20% & 25% (~10%)
+      // 10% & 15% (High probability: 94%), 20% & 25% (Rare probability: 6%)
       const offers = [
-        { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 55 },
-        { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 35 },
-        { text: "20% OFF", note: "Valid on 1 Piece", code: `PV20-C${campusId}`, weight: 7 },
-        { text: "25% OFF", note: "Valid on 1 Piece", code: `PV25-C${campusId}`, weight: 3 }
+        { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 58 },
+        { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 36 },
+        { text: "20% OFF", note: "Valid on 1 Piece", code: `PV20-C${campusId}`, weight: 4 },
+        { text: "25% OFF", note: "Valid on 1 Piece", code: `PV25-C${campusId}`, weight: 2 }
       ];
 
       const totalWeight = offers.reduce((sum, item) => sum + item.weight, 0);
@@ -388,7 +415,7 @@
       return offers[0];
     }
 
-    // 4. Scratch Execution
+    // 3. Scratch Initialization
     async function initApp() {
       const savedDiscount = localStorage.getItem(KEY_DISCOUNT);
       const savedNote = localStorage.getItem(KEY_NOTE);
