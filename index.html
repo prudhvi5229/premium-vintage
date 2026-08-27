@@ -172,6 +172,7 @@
       overflow: hidden;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
       border: 2px solid #d4af37;
+      background: #0a0a0a;
     }
     .reward-box {
       width: 100%;
@@ -219,9 +220,10 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 2;
+      z-index: 10;
       cursor: grab;
       touch-action: none;
+      border-radius: 8px;
     }
 
     .terms {
@@ -276,7 +278,7 @@
 </head>
 <body>
 
-  <!-- Hidden Admin Dashboard (Direct Access via ?admin=pv2026) -->
+  <!-- Admin View Dashboard -->
   <div id="admin-dashboard">
     <div class="admin-title">⚡ Store Live Analytics</div>
     <div class="admin-stats">
@@ -310,9 +312,9 @@
     <div class="card-wrapper">
       <div class="reward-box">
         <div class="reward-sub">Your Exclusive Reward</div>
-        <div class="discount-val" id="discountText">10% OFF</div>
-        <div class="piece-note" id="pieceNote">Valid on Total Bill</div>
-        <div class="coupon-code" id="couponCode">CODE: PV10-C1</div>
+        <div class="discount-val" id="discountText">✦ ✦ ✦</div>
+        <div class="piece-note" id="pieceNote">Scratch the card to reveal</div>
+        <div class="coupon-code" id="couponCode">CODE: UNLOCKING...</div>
       </div>
       <canvas id="scratchCanvas" width="310" height="200"></canvas>
     </div>
@@ -362,7 +364,6 @@
       document.getElementById('c2-stat').innerText = localStorage.getItem('pv_campus_2_count') || "0";
     }
 
-    // Direct Admin View Execution
     if (isAdmin) {
       document.getElementById('admin-dashboard').style.display = 'block';
       const welcome = document.getElementById('welcome-screen');
@@ -391,17 +392,16 @@
       initApp();
     }
 
-    const KEY_DISCOUNT = `pv_live_c${campusId}_disc`;
-    const KEY_NOTE = `pv_live_c${campusId}_note`;
-    const KEY_CODE = `pv_live_c${campusId}_code`;
-    const KEY_SCRATCHED = `pv_live_c${campusId}_scratched`;
+    const KEY_DISCOUNT = `pv_secure_c${campusId}_disc`;
+    const KEY_NOTE = `pv_secure_c${campusId}_note`;
+    const KEY_CODE = `pv_secure_c${campusId}_code`;
+    const KEY_SCRATCHED = `pv_secure_c${campusId}_scratched`;
 
-    function getInstantReward() {
-      // Track local scratch counts reliably
+    function getRewardOffer() {
       let count = parseInt(localStorage.getItem(`pv_campus_${campusId}_count`) || "0") + 1;
       localStorage.setItem(`pv_campus_${campusId}_count`, count);
 
-      // Standard offers: 10% & 15% (High: 94%), 20% & 25% (Low: 6%)
+      // 10% & 15% (~94%), 20% & 25% (~6%)
       const offers = [
         { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 58 },
         { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 36 },
@@ -428,76 +428,84 @@
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
 
-      if (savedDiscount && savedCode) {
+      // If customer already scratched before, reveal saved result
+      if (isAlreadyScratched === 'true' && savedDiscount && savedCode) {
         document.getElementById('discountText').innerText = savedDiscount;
         document.getElementById('pieceNote').innerText = savedNote || "Valid on Total Bill";
         document.getElementById('couponCode').innerText = savedCode;
-      } else {
-        const reward = getInstantReward();
-        const randomPin = Math.floor(1000 + Math.random() * 9000);
-        const generatedCode = `CODE: ${reward.code}-${randomPin}`;
-
-        document.getElementById('discountText').innerText = reward.text;
-        document.getElementById('pieceNote').innerText = reward.note;
-        document.getElementById('couponCode').innerText = generatedCode;
-
-        localStorage.setItem(KEY_DISCOUNT, reward.text);
-        localStorage.setItem(KEY_NOTE, reward.note);
-        localStorage.setItem(KEY_CODE, generatedCode);
-      }
-
-      if (isAlreadyScratched === 'true') {
         canvas.style.display = 'none';
         document.getElementById('statusMessage').style.display = 'block';
-      } else {
-        ctx.fillStyle = '#1c1c1c';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = '#d4af37';
-        ctx.font = 'bold 14px Cinzel, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('✦ SCRATCH TO REVEAL ✦', canvas.width / 2, canvas.height / 2 + 5);
-
-        let isDrawing = false;
-
-        function scratch(e) {
-          if (!isDrawing) return;
-          const rect = canvas.getBoundingClientRect();
-          const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-          const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-
-          const x = clientX - rect.left;
-          const y = clientY - rect.top;
-
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.beginPath();
-          ctx.arc(x, y, 22, 0, Math.PI * 2, false);
-          ctx.fill();
-        }
-
-        ['mousedown', 'touchstart'].forEach(event => {
-          canvas.addEventListener(event, (e) => {
-            isDrawing = true;
-            localStorage.setItem(KEY_SCRATCHED, 'true');
-            scratch(e);
-          });
-        });
-
-        ['mousemove', 'touchmove'].forEach(event => {
-          canvas.addEventListener(event, (e) => {
-            scratch(e);
-          });
-        });
-
-        ['mouseup', 'touchend', 'mouseleave'].forEach(event => {
-          window.addEventListener(event, () => {
-            isDrawing = false;
-            if (localStorage.getItem(KEY_SCRATCHED) === 'true') {
-              document.getElementById('statusMessage').style.display = 'block';
-            }
-          });
-        });
+        return;
       }
+
+      // Draw thick gold scratch coating
+      ctx.fillStyle = '#1c1c1c';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#d4af37';
+      ctx.font = 'bold 15px Cinzel, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('✦ SCRATCH TO REVEAL ✦', canvas.width / 2, canvas.height / 2 + 5);
+
+      let isDrawing = false;
+      let generated = false;
+
+      function revealOfferOnce() {
+        if (!generated) {
+          generated = true;
+          const reward = getRewardOffer();
+          const randomPin = Math.floor(1000 + Math.random() * 9000);
+          const finalCode = `CODE: ${reward.code}-${randomPin}`;
+
+          document.getElementById('discountText').innerText = reward.text;
+          document.getElementById('pieceNote').innerText = reward.note;
+          document.getElementById('couponCode').innerText = finalCode;
+
+          localStorage.setItem(KEY_DISCOUNT, reward.text);
+          localStorage.setItem(KEY_NOTE, reward.note);
+          localStorage.setItem(KEY_CODE, finalCode);
+          localStorage.setItem(KEY_SCRATCHED, 'true');
+        }
+      }
+
+      function scratch(e) {
+        if (!isDrawing) return;
+        revealOfferOnce();
+
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 22, 0, Math.PI * 2, false);
+        ctx.fill();
+      }
+
+      ['mousedown', 'touchstart'].forEach(event => {
+        canvas.addEventListener(event, (e) => {
+          isDrawing = true;
+          scratch(e);
+        });
+      });
+
+      ['mousemove', 'touchmove'].forEach(event => {
+        canvas.addEventListener(event, (e) => {
+          scratch(e);
+        });
+      });
+
+      ['mouseup', 'touchend', 'mouseleave'].forEach(event => {
+        window.addEventListener(event, () => {
+          isDrawing = false;
+          if (generated) {
+            document.getElementById('statusMessage').style.display = 'block';
+          }
+        });
+      });
     }
   </script>
 </body>
