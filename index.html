@@ -125,7 +125,7 @@
 
     /* 2. Main Content Screen */
     #main-content {
-      display: none;
+      display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
@@ -276,7 +276,7 @@
 </head>
 <body>
 
-  <!-- Admin Dedicated Panel -->
+  <!-- Hidden Admin Dashboard (Direct Access via ?admin=pv2026) -->
   <div id="admin-dashboard">
     <div class="admin-title">⚡ Store Live Analytics</div>
     <div class="admin-stats">
@@ -310,9 +310,9 @@
     <div class="card-wrapper">
       <div class="reward-box">
         <div class="reward-sub">Your Exclusive Reward</div>
-        <div class="discount-val" id="discountText">--% OFF</div>
-        <div class="piece-note" id="pieceNote">Valid on Selected Purchase</div>
-        <div class="coupon-code" id="couponCode">CODE: ------</div>
+        <div class="discount-val" id="discountText">10% OFF</div>
+        <div class="piece-note" id="pieceNote">Valid on Total Bill</div>
+        <div class="coupon-code" id="couponCode">CODE: PV10-C1</div>
       </div>
       <canvas id="scratchCanvas" width="310" height="200"></canvas>
     </div>
@@ -357,31 +357,12 @@
     let rawCampus = urlParams.get('c') || '1';
     const campusId = rawCampus.toString().replace(/[^0-9]/g, '') || '1';
 
-    // Global Count Handling
-    async function updateAndGetCount(cid) {
-      const key = `pv_scratches_c${cid}`;
-      try {
-        const res = await fetch(`https://countapi.mileshilliard.com/api/v1/hit/${key}`);
-        const data = await res.json();
-        return parseInt(data.value) || 1;
-      } catch (e) {
-        let count = parseInt(localStorage.getItem(key) || "0") + 1;
-        localStorage.setItem(key, count);
-        return count;
-      }
-    }
-
     function loadAdminStats() {
-      fetch('https://countapi.mileshilliard.com/api/v1/get/pv_scratches_c1')
-        .then(r => r.json()).then(d => { document.getElementById('c1-stat').innerText = d.value || 0; })
-        .catch(() => { document.getElementById('c1-stat').innerText = localStorage.getItem('pv_scratches_c1') || 0; });
-
-      fetch('https://countapi.mileshilliard.com/api/v1/get/pv_scratches_c2')
-        .then(r => r.json()).then(d => { document.getElementById('c2-stat').innerText = d.value || 0; })
-        .catch(() => { document.getElementById('c2-stat').innerText = localStorage.getItem('pv_scratches_c2') || 0; });
+      document.getElementById('c1-stat').innerText = localStorage.getItem('pv_campus_1_count') || "0";
+      document.getElementById('c2-stat').innerText = localStorage.getItem('pv_campus_2_count') || "0";
     }
 
-    // Immediate Execution: Admin vs Customer
+    // Direct Admin View Execution
     if (isAdmin) {
       document.getElementById('admin-dashboard').style.display = 'block';
       const welcome = document.getElementById('welcome-screen');
@@ -401,11 +382,8 @@
           }
 
           if (mainContent) {
-            mainContent.style.display = 'flex';
-            setTimeout(() => {
-              mainContent.style.opacity = '1';
-              mainContent.style.transform = 'translateY(0)';
-            }, 50);
+            mainContent.style.opacity = '1';
+            mainContent.style.transform = 'translateY(0)';
           }
         }, 2500);
       });
@@ -418,24 +396,12 @@
     const KEY_CODE = `pv_live_c${campusId}_code`;
     const KEY_SCRATCHED = `pv_live_c${campusId}_scratched`;
 
-    async function getCollegeReward() {
-      let isMegaWinner = false;
-      const count = await updateAndGetCount(campusId);
+    function getInstantReward() {
+      // Track local scratch counts reliably
+      let count = parseInt(localStorage.getItem(`pv_campus_${campusId}_count`) || "0") + 1;
+      localStorage.setItem(`pv_campus_${campusId}_count`, count);
 
-      // Exactly the 25th scratcher gets 100% OFF on 1 Piece
-      if (count === 25) {
-        isMegaWinner = true;
-      }
-
-      if (isMegaWinner) {
-        return {
-          text: "100% OFF",
-          note: "★ Valid on 1 Single Piece Only ★",
-          code: `PV100-C${campusId}`
-        };
-      }
-
-      // 10% & 15% (~94%), 20% & 25% (~6%)
+      // Standard offers: 10% & 15% (High: 94%), 20% & 25% (Low: 6%)
       const offers = [
         { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 58 },
         { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 36 },
@@ -452,7 +418,7 @@
       return offers[0];
     }
 
-    async function initApp() {
+    function initApp() {
       const savedDiscount = localStorage.getItem(KEY_DISCOUNT);
       const savedNote = localStorage.getItem(KEY_NOTE);
       const savedCode = localStorage.getItem(KEY_CODE);
@@ -467,9 +433,9 @@
         document.getElementById('pieceNote').innerText = savedNote || "Valid on Total Bill";
         document.getElementById('couponCode').innerText = savedCode;
       } else {
-        const reward = await getCollegeReward();
+        const reward = getInstantReward();
         const randomPin = Math.floor(1000 + Math.random() * 9000);
-        const generatedCode = reward.text === "100% OFF" ? `CODE: ${reward.code}` : `CODE: ${reward.code}-${randomPin}`;
+        const generatedCode = `CODE: ${reward.code}-${randomPin}`;
 
         document.getElementById('discountText').innerText = reward.text;
         document.getElementById('pieceNote').innerText = reward.note;
