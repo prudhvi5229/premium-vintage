@@ -18,45 +18,65 @@
       padding: 20px 15px;
     }
 
-    /* Admin View Dashboard */
+    /* Admin View Dedicated Dashboard */
     #admin-dashboard {
       display: none;
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
       background: #111111;
       border: 2px solid #d4af37;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 20px;
+      border-radius: 12px;
+      padding: 25px 20px;
       text-align: center;
-      box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+      box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+      z-index: 10000;
     }
     .admin-title {
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 18px;
+      font-weight: 800;
       color: #d4af37;
-      letter-spacing: 2px;
-      margin-bottom: 12px;
+      letter-spacing: 3px;
+      margin-bottom: 20px;
       text-transform: uppercase;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+      padding-bottom: 10px;
     }
     .admin-stats {
       display: flex;
-      justify-content: space-around;
-      font-size: 13px;
-      color: #cccccc;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
     }
     .stat-box {
-      background: #1c1c1c;
-      padding: 10px 15px;
-      border-radius: 6px;
+      flex: 1;
+      background: #1a1a1a;
+      padding: 15px 10px;
+      border-radius: 8px;
       border: 1px solid #333333;
-      width: 45%;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #aaaaaa;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
     .stat-val {
-      font-size: 24px;
-      font-weight: bold;
+      font-size: 32px;
+      font-weight: 800;
       color: #d4af37;
-      margin-top: 6px;
+      margin-top: 8px;
+    }
+    .refresh-btn {
+      background: #d4af37;
+      color: #000000;
+      border: none;
+      padding: 10px 20px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
     /* 1. Splash Welcome Screen */
@@ -256,19 +276,20 @@
 </head>
 <body>
 
-  <!-- Hidden Admin Dashboard (Opens with ?admin=pv2026) -->
+  <!-- Admin Dedicated Panel -->
   <div id="admin-dashboard">
     <div class="admin-title">⚡ Store Live Analytics</div>
     <div class="admin-stats">
       <div class="stat-box">
-        <div>College 1 Total</div>
-        <div class="stat-val" id="c1-stat">0</div>
+        <div class="stat-label">College 1 Scans</div>
+        <div class="stat-val" id="c1-stat">...</div>
       </div>
       <div class="stat-box">
-        <div>College 2 Total</div>
-        <div class="stat-val" id="c2-stat">0</div>
+        <div class="stat-label">College 2 Scans</div>
+        <div class="stat-val" id="c2-stat">...</div>
       </div>
     </div>
+    <button class="refresh-btn" onclick="loadAdminStats()">🔄 Refresh Count</button>
   </div>
 
   <!-- 1. Intro Splash Screen -->
@@ -331,14 +352,13 @@
   </div>
 
   <script>
-    // 1. Admin Verification & Live Counter UI
     const urlParams = new URLSearchParams(window.location.search);
     const isAdmin = urlParams.get('admin') === 'pv2026';
     let rawCampus = urlParams.get('c') || '1';
     const campusId = rawCampus.toString().replace(/[^0-9]/g, '') || '1';
 
-    // Reliable Counter Sync
-    async function updateAndGetLiveCount(cid) {
+    // Reliable counter update and fetch
+    async function updateAndGetCount(cid) {
       const key = `pv_scratches_c${cid}`;
       try {
         const res = await fetch(`https://countapi.mileshilliard.com/api/v1/hit/${key}`);
@@ -351,8 +371,7 @@
       }
     }
 
-    if (isAdmin) {
-      document.getElementById('admin-dashboard').style.display = 'block';
+    function loadAdminStats() {
       fetch('https://countapi.mileshilliard.com/api/v1/get/pv_scratches_c1')
         .then(r => r.json()).then(d => { document.getElementById('c1-stat').innerText = d.value || 0; })
         .catch(() => { document.getElementById('c1-stat').innerText = localStorage.getItem('pv_scratches_c1') || 0; });
@@ -362,19 +381,29 @@
         .catch(() => { document.getElementById('c2-stat').innerText = localStorage.getItem('pv_scratches_c2') || 0; });
     }
 
-    // 2. Intro Welcome Screen Transition (2.5 Sec)
-    window.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        const welcomeScreen = document.getElementById('welcome-screen');
-        const mainContent = document.getElementById('main-content');
-        
-        welcomeScreen.style.opacity = '0';
-        welcomeScreen.style.visibility = 'hidden';
+    // Direct Admin View Logic
+    if (isAdmin) {
+      document.getElementById('admin-dashboard').style.display = 'block';
+      document.getElementById('welcome-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'none';
+      loadAdminStats();
+    } else {
+      // Normal Customer Flow
+      window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          const welcomeScreen = document.getElementById('welcome-screen');
+          const mainContent = document.getElementById('main-content');
+          
+          welcomeScreen.style.opacity = '0';
+          welcomeScreen.style.visibility = 'hidden';
 
-        mainContent.style.opacity = '1';
-        mainContent.style.transform = 'translateY(0)';
-      }, 2500);
-    });
+          mainContent.style.opacity = '1';
+          mainContent.style.transform = 'translateY(0)';
+        }, 2500);
+      });
+
+      initApp();
+    }
 
     const KEY_DISCOUNT = `pv_live_c${campusId}_disc`;
     const KEY_NOTE = `pv_live_c${campusId}_note`;
@@ -383,9 +412,9 @@
 
     async function getCollegeReward() {
       let isMegaWinner = false;
-      const count = await updateAndGetLiveCount(campusId);
+      const count = await updateAndGetCount(campusId);
 
-      // 25th scratcher gets 100% OFF on 1 Piece (Only 1 student per college)
+      // Exactly the 25th scratcher gets 100% OFF on 1 Piece
       if (count === 25) {
         isMegaWinner = true;
       }
@@ -398,7 +427,7 @@
         };
       }
 
-      // 10% & 15% (High probability: 94%), 20% & 25% (Rare probability: 6%)
+      // 10% & 15% (~94%), 20% & 25% (~6%)
       const offers = [
         { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 58 },
         { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 36 },
@@ -415,7 +444,7 @@
       return offers[0];
     }
 
-    // 3. Scratch Initialization
+    // Customer Scratch Setup
     async function initApp() {
       const savedDiscount = localStorage.getItem(KEY_DISCOUNT);
       const savedNote = localStorage.getItem(KEY_NOTE);
@@ -496,8 +525,6 @@
         });
       }
     }
-
-    initApp();
   </script>
 </body>
 </html>
