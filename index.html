@@ -11,10 +11,43 @@
       color: #ffffff;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       overflow-x: hidden;
       padding: 20px 15px;
+    }
+
+    /* Admin Floating Dashboard */
+    #admin-dashboard {
+      display: none;
+      width: 100%;
+      max-width: 420px;
+      background: #151515;
+      border: 2px solid #d4af37;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    }
+    .admin-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #d4af37;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    .admin-stats {
+      display: flex;
+      justify-content: space-around;
+      font-size: 13px;
+    }
+    .stat-val {
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffffff;
+      margin-top: 4px;
     }
 
     /* 1. Splash Welcome Screen */
@@ -214,6 +247,15 @@
 </head>
 <body>
 
+  <!-- Admin View Dashboard -->
+  <div id="admin-dashboard">
+    <div class="admin-title">⚡ STORE LIVE ANALYTICS</div>
+    <div class="admin-stats">
+      <div>College 1 Scratches: <div class="stat-val" id="c1-stat">--</div></div>
+      <div>College 2 Scratches: <div class="stat-val" id="c2-stat">--</div></div>
+    </div>
+  </div>
+
   <!-- 1. Intro Splash Screen -->
   <div id="welcome-screen">
     <img src="https://raw.githubusercontent.com/prudhvi5229/premium-vintage/main/logo.png" alt="Premium Vintage Logo" class="welcome-logo" onerror="this.style.display='none'">
@@ -274,7 +316,29 @@
   </div>
 
   <script>
-    // 1. Splash Screen Timer
+    // 1. Admin Verification
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdmin = urlParams.get('admin') === 'pv2026';
+    let rawCampus = urlParams.get('c') || '1';
+    const campusId = rawCampus.toString().replace(/[^0-9]/g, '') || '1';
+
+    if (isAdmin) {
+      document.getElementById('admin-dashboard').style.display = 'block';
+      // Load current counts
+      fetch('https://api.counterapi.dev/v1/pv-premium-vintage/c1/up')
+        .then(r => r.json()).then(d => { document.getElementById('c1-stat').innerText = d.count || 0; })
+        .catch(() => {
+          document.getElementById('c1-stat').innerText = localStorage.getItem('pv_campus_1_count') || "0";
+        });
+
+      fetch('https://api.counterapi.dev/v1/pv-premium-vintage/c2/up')
+        .then(r => r.json()).then(d => { document.getElementById('c2-stat').innerText = d.count || 0; })
+        .catch(() => {
+          document.getElementById('c2-stat').innerText = localStorage.getItem('pv_campus_2_count') || "0";
+        });
+    }
+
+    // 2. Intro Transition (2.5 Sec)
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         const welcomeScreen = document.getElementById('welcome-screen');
@@ -288,42 +352,18 @@
       }, 2500);
     });
 
-    // 2. Campus ID Handling
-    const urlParams = new URLSearchParams(window.location.search);
-    let rawCampus = urlParams.get('c') || '1';
-    const campusId = rawCampus.toString().replace(/[^0-9]/g, '') || '1';
-
-    const KEY_DISCOUNT = `pv_live_c${campusId}_disc`;
-    const KEY_NOTE = `pv_live_c${campusId}_note`;
-    const KEY_CODE = `pv_live_c${campusId}_code`;
-    const KEY_SCRATCHED = `pv_live_c${campusId}_scratched`;
+    // 3. Local + Cloud Count Tracking
+    const KEY_DISCOUNT = `pv_clean_c${campusId}_disc`;
+    const KEY_NOTE = `pv_clean_c${campusId}_note`;
+    const KEY_CODE = `pv_clean_c${campusId}_code`;
+    const KEY_SCRATCHED = `pv_clean_c${campusId}_scratched`;
 
     async function getCollegeReward() {
-      let isMegaWinner = false;
+      let currentCount = parseInt(localStorage.getItem(`pv_campus_${campusId}_count`) || "0") + 1;
+      localStorage.setItem(`pv_campus_${campusId}_count`, currentCount);
 
-      try {
-        const endpoint = `https://api.keyvalue.xyz/get/pv_campus${campusId}_count`;
-        const postEndpoint = `https://api.keyvalue.xyz/set/pv_campus${campusId}_count`;
-        
-        const res = await fetch(endpoint);
-        let count = 0;
-        if (res.ok) {
-          const text = await res.text();
-          count = parseInt(text) || 0;
-        }
-        count += 1;
-        // Increment count in cloud
-        fetch(`${postEndpoint}/${count}`, { method: 'POST' }).catch(()=>{});
-
-        // 25th scratcher gets 100% OFF on 1 Piece (Only 1 winner per college)
-        if (count === 25) {
-          isMegaWinner = true;
-        }
-      } catch (e) {
-        isMegaWinner = false;
-      }
-
-      if (isMegaWinner) {
+      // 100% OFF for the 25th scratcher
+      if (currentCount === 25) {
         return {
           text: "100% OFF",
           note: "★ Valid on 1 Single Piece Only ★",
@@ -331,7 +371,7 @@
         };
       }
 
-      // 10% & 15% (~90%), 20% & 25% (~10%)
+      // Standard offers: 10% & 15% (~90%), 20% & 25% (~10%)
       const offers = [
         { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 55 },
         { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 35 },
@@ -348,7 +388,7 @@
       return offers[0];
     }
 
-    // 3. Scratch Initialization
+    // 4. Scratch Execution
     async function initApp() {
       const savedDiscount = localStorage.getItem(KEY_DISCOUNT);
       const savedNote = localStorage.getItem(KEY_NOTE);
