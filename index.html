@@ -17,7 +17,7 @@
       padding: 20px;
     }
 
-    /* 1. Welcome Splash Screen (Black & Gold Theme) */
+    /* 1. Welcome Splash Screen */
     #welcome-screen {
       position: fixed;
       top: 0;
@@ -33,12 +33,12 @@
       transition: opacity 0.8s ease, visibility 0.8s ease;
       text-align: center;
       padding: 20px;
-      border: 2px solid #d4af37;
     }
     .welcome-logo {
-      width: 140px;
-      margin-bottom: 22px;
-      filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+      width: 130px;
+      max-height: 140px;
+      object-fit: contain;
+      margin-bottom: 20px;
       animation: pulse 1.8s infinite alternate;
     }
     .welcome-text {
@@ -49,7 +49,7 @@
       margin-bottom: 8px;
     }
     .brand-glow {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
       color: #d4af37;
       letter-spacing: 4px;
@@ -61,7 +61,7 @@
       to { transform: scale(1.03); opacity: 1; }
     }
 
-    /* 2. Main Content Screen */
+    /* 2. Main Scratch Page */
     #main-content {
       display: flex;
       flex-direction: column;
@@ -74,9 +74,10 @@
       transition: opacity 0.6s ease, transform 0.6s ease;
     }
     .main-logo {
-      width: 95px;
+      width: 85px;
+      max-height: 95px;
+      object-fit: contain;
       margin-bottom: 12px;
-      filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.2));
     }
     .store-badge {
       font-size: 22px;
@@ -91,7 +92,7 @@
       color: #e5e5e5;
       font-weight: 400;
       line-height: 1.5;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       background: rgba(212, 175, 55, 0.05);
       padding: 12px 18px;
       border-left: 2px solid #d4af37;
@@ -100,11 +101,11 @@
       letter-spacing: 1px;
     }
 
-    /* 3. Scratch Card Container (Black & Gold) */
+    /* 3. Scratch Card Box */
     .card-wrapper {
       position: relative;
       width: 310px;
-      height: 190px;
+      height: 200px;
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
@@ -127,16 +128,22 @@
       text-transform: uppercase;
     }
     .discount-val {
-      font-size: 40px;
+      font-size: 36px;
       font-weight: 800;
       color: #d4af37;
-      margin: 6px 0;
+      margin: 4px 0;
       text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    }
+    .piece-note {
+      font-size: 12px;
+      color: #ffffff;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
     }
     .coupon-code {
       font-size: 13px;
       background: #141414;
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 4px;
       letter-spacing: 2px;
       color: #ffffff;
@@ -144,7 +151,7 @@
       border: 1px dashed #d4af37;
     }
 
-    /* Canvas Layer (Gold-tinted scratch layer) */
+    /* Scratch Layer */
     canvas {
       position: absolute;
       top: 0;
@@ -178,16 +185,16 @@
 </head>
 <body>
 
-  <!-- 1. Intro Welcome Screen -->
+  <!-- 1. Splash Welcome Screen -->
   <div id="welcome-screen">
-    <img src="logo.png" alt="Premium Vintage Logo" class="welcome-logo">
+    <img src="./logo.png" alt="Premium Vintage Logo" class="welcome-logo" onerror="this.style.display='none'">
     <div class="welcome-text">Welcome to</div>
     <div class="brand-glow">PREMIUM VINTAGE</div>
   </div>
 
-  <!-- 2. Main Scratch Page -->
+  <!-- 2. Main Content Screen -->
   <div id="main-content">
-    <img src="logo.png" alt="Premium Vintage Logo" class="main-logo">
+    <img src="./logo.png" alt="Premium Vintage Logo" class="main-logo" onerror="this.style.display='none'">
     <div class="store-badge">Premium Vintage</div>
     <div class="tagline-quote">
       ✨ "Scratch to unlock your exclusive offer & upgrade your style with Premium Vintage!" ✨
@@ -195,11 +202,12 @@
 
     <div class="card-wrapper">
       <div class="reward-box">
-        <div class="reward-sub">Your Exclusive Offer</div>
+        <div class="reward-sub">Your Exclusive Reward</div>
         <div class="discount-val" id="discountText">--% OFF</div>
+        <div class="piece-note" id="pieceNote">Valid on Selected Purchase</div>
         <div class="coupon-code" id="couponCode">CODE: ------</div>
       </div>
-      <canvas id="scratchCanvas" width="310" height="190"></canvas>
+      <canvas id="scratchCanvas" width="310" height="200"></canvas>
     </div>
 
     <div id="statusMessage" class="already-claimed" style="display: none;">
@@ -208,12 +216,12 @@
 
     <div class="terms">
       • Show this code at billing counter to claim your discount.<br>
-      • Valid for single use only per customer.
+      • Valid for single scratch per device.
     </div>
   </div>
 
   <script>
-    // 1. Welcome Screen Timer (2.5 seconds)
+    // 1. Intro Splash Screen Timer (2.5 Sec)
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         const welcomeScreen = document.getElementById('welcome-screen');
@@ -227,101 +235,136 @@
       }, 2500);
     });
 
-    // 2. Discount Selection Logic
-    const discounts = [
-      { text: "5% OFF", code: "PV05", weight: 35 },
-      { text: "10% OFF", code: "PV10", weight: 30 },
-      { text: "15% OFF", code: "PV15", weight: 20 },
-      { text: "20% OFF", code: "PV20", weight: 10 },
-      { text: "25% OFF", code: "PV25", weight: 5 }
-    ];
+    // 2. Identify College Campaign from URL (?c=1 or ?c=2)
+    const urlParams = new URLSearchParams(window.location.search);
+    const campusId = urlParams.get('c') || '1';
 
-    function getRandomDiscount() {
-      const totalWeight = discounts.reduce((acc, curr) => acc + curr.weight, 0);
+    async function getCollegeReward() {
+      let isMegaWinner = false;
+
+      try {
+        // Track live count & pick the 100% OFF single winner
+        const counterName = `pv-campus-${campusId}-scratches`;
+        const res = await fetch(`https://api.counterapi.dev/v1/premium-vintage/${counterName}/up`);
+        const data = await res.json();
+
+        // Exactly the 25th scratcher gets 100% OFF on 1 Piece
+        if (data.count === 25) {
+          isMegaWinner = true;
+        }
+      } catch (e) {
+        isMegaWinner = false;
+      }
+
+      if (isMegaWinner) {
+        return {
+          text: "100% OFF",
+          note: "★ Valid on 1 Single Piece Only ★",
+          code: `PV100-CAMPUS${campusId}`
+        };
+      }
+
+      // Standard offers: 10% & 15% (High probability), 20% & 25% (Low probability)
+      const offers = [
+        { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 55 },
+        { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 35 },
+        { text: "20% OFF", note: "Valid on 1 Piece", code: `PV20-C${campusId}`, weight: 7 },
+        { text: "25% OFF", note: "Valid on 1 Piece", code: `PV25-C${campusId}`, weight: 3 }
+      ];
+
+      const totalWeight = offers.reduce((sum, item) => sum + item.weight, 0);
       let rand = Math.random() * totalWeight;
-      for (let item of discounts) {
+      for (let item of offers) {
         if (rand < item.weight) return item;
         rand -= item.weight;
       }
-      return discounts[0];
+      return offers[0];
     }
 
-    // 3. LocalStorage Check (Scan anytime, scratch only once per device)
-    const savedDiscount = localStorage.getItem('pv_user_discount');
-    const savedCode = localStorage.getItem('pv_user_code');
-    const isAlreadyScratched = localStorage.getItem('pv_has_scratched');
+    // 3. One Scratch Per Device & UI Execution
+    async function initApp() {
+      const savedDiscount = localStorage.getItem('pv_user_discount');
+      const savedNote = localStorage.getItem('pv_user_note');
+      const savedCode = localStorage.getItem('pv_user_code');
+      const isAlreadyScratched = localStorage.getItem('pv_has_scratched');
 
-    const canvas = document.getElementById('scratchCanvas');
-    const ctx = canvas.getContext('2d');
+      const canvas = document.getElementById('scratchCanvas');
+      const ctx = canvas.getContext('2d');
 
-    if (savedDiscount && savedCode) {
-      document.getElementById('discountText').innerText = savedDiscount;
-      document.getElementById('couponCode').innerText = savedCode;
-    } else {
-      const selected = getRandomDiscount();
-      const randomPin = Math.floor(1000 + Math.random() * 9000);
-      const generatedCode = `CODE: ${selected.code}-${randomPin}`;
-      
-      document.getElementById('discountText').innerText = selected.text;
-      document.getElementById('couponCode').innerText = generatedCode;
+      if (savedDiscount && savedCode) {
+        document.getElementById('discountText').innerText = savedDiscount;
+        document.getElementById('pieceNote').innerText = savedNote || "Valid on Total Bill";
+        document.getElementById('couponCode').innerText = savedCode;
+      } else {
+        const reward = await getCollegeReward();
+        const randomPin = Math.floor(1000 + Math.random() * 9000);
+        const generatedCode = reward.text === "100% OFF" ? `CODE: ${reward.code}` : `CODE: ${reward.code}-${randomPin}`;
 
-      localStorage.setItem('pv_user_discount', selected.text);
-      localStorage.setItem('pv_user_code', generatedCode);
-    }
+        document.getElementById('discountText').innerText = reward.text;
+        document.getElementById('pieceNote').innerText = reward.note;
+        document.getElementById('couponCode').innerText = generatedCode;
 
-    if (isAlreadyScratched === 'true') {
-      canvas.style.display = 'none';
-      document.getElementById('statusMessage').style.display = 'block';
-    } else {
-      // Premium Dark/Gold Scratch Cover
-      ctx.fillStyle = '#222222';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#d4af37';
-      ctx.font = 'bold 14px Cinzel, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('✦ SCRATCH TO REVEAL ✦', canvas.width / 2, canvas.height / 2 + 5);
-
-      let isDrawing = false;
-
-      function scratch(e) {
-        if (!isDrawing) return;
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
-
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath();
-        ctx.arc(x, y, 22, 0, Math.PI * 2, false);
-        ctx.fill();
+        localStorage.setItem('pv_user_discount', reward.text);
+        localStorage.setItem('pv_user_note', reward.note);
+        localStorage.setItem('pv_user_code', generatedCode);
       }
 
-      ['mousedown', 'touchstart'].forEach(event => {
-        canvas.addEventListener(event, (e) => {
-          isDrawing = true;
-          localStorage.setItem('pv_has_scratched', 'true');
-          scratch(e);
-        });
-      });
+      if (isAlreadyScratched === 'true') {
+        canvas.style.display = 'none';
+        document.getElementById('statusMessage').style.display = 'block';
+      } else {
+        // Dark metallic scratch layer
+        ctx.fillStyle = '#1c1c1c';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ['mousemove', 'touchmove'].forEach(event => {
-        canvas.addEventListener(event, (e) => {
-          scratch(e);
-        });
-      });
+        ctx.fillStyle = '#d4af37';
+        ctx.font = 'bold 14px Cinzel, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✦ SCRATCH TO REVEAL ✦', canvas.width / 2, canvas.height / 2 + 5);
 
-      ['mouseup', 'touchend', 'mouseleave'].forEach(event => {
-        window.addEventListener(event, () => {
-          isDrawing = false;
-          if(localStorage.getItem('pv_has_scratched') === 'true') {
-            document.getElementById('statusMessage').style.display = 'block';
-          }
+        let isDrawing = false;
+
+        function scratch(e) {
+          if (!isDrawing) return;
+          const rect = canvas.getBoundingClientRect();
+          const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+          const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+          const x = clientX - rect.left;
+          const y = clientY - rect.top;
+
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.beginPath();
+          ctx.arc(x, y, 22, 0, Math.PI * 2, false);
+          ctx.fill();
+        }
+
+        ['mousedown', 'touchstart'].forEach(event => {
+          canvas.addEventListener(event, (e) => {
+            isDrawing = true;
+            localStorage.setItem('pv_has_scratched', 'true');
+            scratch(e);
+          });
         });
-      });
+
+        ['mousemove', 'touchmove'].forEach(event => {
+          canvas.addEventListener(event, (e) => {
+            scratch(e);
+          });
+        });
+
+        ['mouseup', 'touchend', 'mouseleave'].forEach(event => {
+          window.addEventListener(event, () => {
+            isDrawing = false;
+            if (localStorage.getItem('pv_has_scratched') === 'true') {
+              document.getElementById('statusMessage').style.display = 'block';
+            }
+          });
+        });
+      }
     }
+
+    initApp();
   </script>
 </body>
 </html>
