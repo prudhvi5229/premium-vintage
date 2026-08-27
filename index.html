@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Premium Vintage - Exclusive Rewards</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cinzel', 'Times New Roman', 'Segoe UI', serif; }
@@ -22,61 +22,48 @@
     #admin-dashboard {
       display: none;
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       background: #111111;
       border: 2px solid #d4af37;
       border-radius: 12px;
-      padding: 25px 20px;
+      padding: 20px;
       text-align: center;
-      box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+      margin-bottom: 20px;
       z-index: 10000;
     }
     .admin-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
       color: #d4af37;
-      letter-spacing: 3px;
-      margin-bottom: 20px;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
       text-transform: uppercase;
       border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-      padding-bottom: 10px;
+      padding-bottom: 8px;
     }
     .admin-stats {
       display: flex;
       justify-content: space-between;
-      gap: 15px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 15px;
     }
     .stat-box {
       flex: 1;
-      background: #1a1a1a;
-      padding: 15px 10px;
+      background: #1c1c1c;
+      padding: 12px 8px;
       border-radius: 8px;
       border: 1px solid #333333;
     }
     .stat-label {
-      font-size: 12px;
+      font-size: 11px;
       color: #aaaaaa;
-      letter-spacing: 1px;
       text-transform: uppercase;
     }
     .stat-val {
-      font-size: 32px;
+      font-size: 26px;
       font-weight: 800;
       color: #d4af37;
-      margin-top: 8px;
-    }
-    .refresh-btn {
-      background: #d4af37;
-      color: #000000;
-      border: none;
-      padding: 10px 20px;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      margin-top: 6px;
     }
 
     /* 1. Splash Welcome Screen */
@@ -131,9 +118,6 @@
       text-align: center;
       max-width: 420px;
       width: 100%;
-      opacity: 0;
-      transform: translateY(15px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
     }
     .main-logo {
       width: 85px;
@@ -173,11 +157,13 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
       border: 2px solid #d4af37;
       background: #0a0a0a;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .reward-box {
       width: 100%;
       height: 100%;
-      background: #0a0a0a;
+      background: #0d0d0d;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -191,22 +177,22 @@
       text-transform: uppercase;
     }
     .discount-val {
-      font-size: 36px;
+      font-size: 38px;
       font-weight: 800;
       color: #d4af37;
       margin: 4px 0;
-      text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+      text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
     }
     .piece-note {
       font-size: 12px;
       color: #ffffff;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       letter-spacing: 1px;
     }
     .coupon-code {
       font-size: 13px;
-      background: #141414;
-      padding: 5px 12px;
+      background: #181818;
+      padding: 6px 14px;
       border-radius: 4px;
       letter-spacing: 2px;
       color: #ffffff;
@@ -220,10 +206,9 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 10;
-      cursor: grab;
+      z-index: 20;
+      cursor: pointer;
       touch-action: none;
-      border-radius: 8px;
     }
 
     .terms {
@@ -264,10 +249,6 @@
       text-decoration: none;
       font-size: 13px;
       letter-spacing: 1px;
-      transition: opacity 0.2s;
-    }
-    .footer-item:hover {
-      opacity: 0.8;
     }
     .footer-icon {
       width: 16px;
@@ -283,15 +264,14 @@
     <div class="admin-title">⚡ Store Live Analytics</div>
     <div class="admin-stats">
       <div class="stat-box">
-        <div class="stat-label">College 1 Scans</div>
+        <div class="stat-label">College 1 Total</div>
         <div class="stat-val" id="c1-stat">0</div>
       </div>
       <div class="stat-box">
-        <div class="stat-label">College 2 Scans</div>
+        <div class="stat-label">College 2 Total</div>
         <div class="stat-val" id="c2-stat">0</div>
       </div>
     </div>
-    <button class="refresh-btn" onclick="loadAdminStats()">🔄 Refresh Count</button>
   </div>
 
   <!-- 1. Intro Splash Screen -->
@@ -312,9 +292,9 @@
     <div class="card-wrapper">
       <div class="reward-box">
         <div class="reward-sub">Your Exclusive Reward</div>
-        <div class="discount-val" id="discountText">✦ ✦ ✦</div>
-        <div class="piece-note" id="pieceNote">Scratch the card to reveal</div>
-        <div class="coupon-code" id="couponCode">CODE: UNLOCKING...</div>
+        <div class="discount-val" id="discountText">10% OFF</div>
+        <div class="piece-note" id="pieceNote">Valid on Total Bill</div>
+        <div class="coupon-code" id="couponCode">CODE: PV10-C1</div>
       </div>
       <canvas id="scratchCanvas" width="310" height="200"></canvas>
     </div>
@@ -359,43 +339,32 @@
     let rawCampus = urlParams.get('c') || '1';
     const campusId = rawCampus.toString().replace(/[^0-9]/g, '') || '1';
 
-    function loadAdminStats() {
-      document.getElementById('c1-stat').innerText = localStorage.getItem('pv_campus_1_count') || "0";
-      document.getElementById('c2-stat').innerText = localStorage.getItem('pv_campus_2_count') || "0";
-    }
-
+    // Admin Display
     if (isAdmin) {
       document.getElementById('admin-dashboard').style.display = 'block';
       const welcome = document.getElementById('welcome-screen');
       const main = document.getElementById('main-content');
       if (welcome) welcome.remove();
       if (main) main.remove();
-      loadAdminStats();
+      document.getElementById('c1-stat').innerText = localStorage.getItem('pv_campus_1_count') || "0";
+      document.getElementById('c2-stat').innerText = localStorage.getItem('pv_campus_2_count') || "0";
     } else {
+      // Splash Fade Out
       window.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           const welcomeScreen = document.getElementById('welcome-screen');
-          const mainContent = document.getElementById('main-content');
-          
           if (welcomeScreen) {
             welcomeScreen.style.opacity = '0';
             welcomeScreen.style.visibility = 'hidden';
           }
-
-          if (mainContent) {
-            mainContent.style.opacity = '1';
-            mainContent.style.transform = 'translateY(0)';
-          }
-        }, 2500);
+        }, 2200);
       });
-
-      initApp();
     }
 
-    const KEY_DISCOUNT = `pv_secure_c${campusId}_disc`;
-    const KEY_NOTE = `pv_secure_c${campusId}_note`;
-    const KEY_CODE = `pv_secure_c${campusId}_code`;
-    const KEY_SCRATCHED = `pv_secure_c${campusId}_scratched`;
+    const KEY_DISCOUNT = `pv_app_c${campusId}_disc`;
+    const KEY_NOTE = `pv_app_c${campusId}_note`;
+    const KEY_CODE = `pv_app_c${campusId}_code`;
+    const KEY_SCRATCHED = `pv_app_c${campusId}_scratched`;
 
     function getRewardOffer() {
       let count = parseInt(localStorage.getItem(`pv_campus_${campusId}_count`) || "0") + 1;
@@ -418,7 +387,7 @@
       return offers[0];
     }
 
-    function initApp() {
+    function initScratchCard() {
       const savedDiscount = localStorage.getItem(KEY_DISCOUNT);
       const savedNote = localStorage.getItem(KEY_NOTE);
       const savedCode = localStorage.getItem(KEY_CODE);
@@ -428,84 +397,102 @@
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
 
-      // If customer already scratched before, reveal saved result
-      if (isAlreadyScratched === 'true' && savedDiscount && savedCode) {
+      // Set underlying reward immediately
+      if (savedDiscount && savedCode) {
         document.getElementById('discountText').innerText = savedDiscount;
         document.getElementById('pieceNote').innerText = savedNote || "Valid on Total Bill";
         document.getElementById('couponCode').innerText = savedCode;
+      } else {
+        const reward = getRewardOffer();
+        const randomPin = Math.floor(1000 + Math.random() * 9000);
+        const finalCode = `CODE: ${reward.code}-${randomPin}`;
+
+        document.getElementById('discountText').innerText = reward.text;
+        document.getElementById('pieceNote').innerText = reward.note;
+        document.getElementById('couponCode').innerText = finalCode;
+
+        localStorage.setItem(KEY_DISCOUNT, reward.text);
+        localStorage.setItem(KEY_NOTE, reward.note);
+        localStorage.setItem(KEY_CODE, finalCode);
+      }
+
+      if (isAlreadyScratched === 'true') {
         canvas.style.display = 'none';
         document.getElementById('statusMessage').style.display = 'block';
         return;
       }
 
-      // Draw thick gold scratch coating
-      ctx.fillStyle = '#1c1c1c';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Draw solid scratchable gold/metallic cover
+      ctx.fillStyle = '#222222';
+      ctx.fillRect(0, 0, 310, 200);
 
+      // Gold Border on Canvas
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(4, 4, 302, 192);
+
+      // Scratch Label
       ctx.fillStyle = '#d4af37';
       ctx.font = 'bold 15px Cinzel, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('✦ SCRATCH TO REVEAL ✦', canvas.width / 2, canvas.height / 2 + 5);
+      ctx.fillText('✦ SCRATCH TO UNLOCK ✦', 155, 105);
 
       let isDrawing = false;
-      let generated = false;
 
-      function revealOfferOnce() {
-        if (!generated) {
-          generated = true;
-          const reward = getRewardOffer();
-          const randomPin = Math.floor(1000 + Math.random() * 9000);
-          const finalCode = `CODE: ${reward.code}-${randomPin}`;
-
-          document.getElementById('discountText').innerText = reward.text;
-          document.getElementById('pieceNote').innerText = reward.note;
-          document.getElementById('couponCode').innerText = finalCode;
-
-          localStorage.setItem(KEY_DISCOUNT, reward.text);
-          localStorage.setItem(KEY_NOTE, reward.note);
-          localStorage.setItem(KEY_CODE, finalCode);
-          localStorage.setItem(KEY_SCRATCHED, 'true');
-        }
-      }
-
-      function scratch(e) {
-        if (!isDrawing) return;
-        revealOfferOnce();
-
+      function scratchAt(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
+        const x = (clientX - rect.left) * (canvas.width / rect.width);
+        const y = (clientY - rect.top) * (canvas.height / rect.height);
 
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath();
-        ctx.arc(x, y, 22, 0, Math.PI * 2, false);
+        ctx.arc(x, y, 25, 0, Math.PI * 2, false);
         ctx.fill();
+
+        localStorage.setItem(KEY_SCRATCHED, 'true');
       }
 
-      ['mousedown', 'touchstart'].forEach(event => {
-        canvas.addEventListener(event, (e) => {
-          isDrawing = true;
-          scratch(e);
-        });
+      // Mouse Events
+      canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        scratchAt(e.clientX, e.clientY);
       });
-
-      ['mousemove', 'touchmove'].forEach(event => {
-        canvas.addEventListener(event, (e) => {
-          scratch(e);
-        });
+      window.addEventListener('mousemove', (e) => {
+        if (isDrawing) scratchAt(e.clientX, e.clientY);
       });
-
-      ['mouseup', 'touchend', 'mouseleave'].forEach(event => {
-        window.addEventListener(event, () => {
+      window.addEventListener('mouseup', () => {
+        if (isDrawing) {
           isDrawing = false;
-          if (generated) {
-            document.getElementById('statusMessage').style.display = 'block';
-          }
-        });
+          document.getElementById('statusMessage').style.display = 'block';
+        }
       });
+
+      // Mobile Touch Events (with preventDefault for flawless scratching)
+      canvas.addEventListener('touchstart', (e) => {
+        isDrawing = true;
+        if (e.touches && e.touches[0]) {
+          scratchAt(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        e.preventDefault();
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', (e) => {
+        if (isDrawing && e.touches && e.touches[0]) {
+          scratchAt(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        e.preventDefault();
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', (e) => {
+        if (isDrawing) {
+          isDrawing = false;
+          document.getElementById('statusMessage').style.display = 'block';
+        }
+      });
+    }
+
+    if (!isAdmin) {
+      initScratchCard();
     }
   </script>
 </body>
