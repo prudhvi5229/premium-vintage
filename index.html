@@ -288,27 +288,35 @@
       }, 2500);
     });
 
-    // 2. Clean Campus Identification (Ensures clean campus ID: 1 or 2)
+    // 2. Campus ID Handling
     const urlParams = new URLSearchParams(window.location.search);
     let rawCampus = urlParams.get('c') || '1';
     const campusId = rawCampus.toString().replace(/[^0-9]/g, '') || '1';
 
-    const KEY_DISCOUNT = `pv_clean_c${campusId}_disc`;
-    const KEY_NOTE = `pv_clean_c${campusId}_note`;
-    const KEY_CODE = `pv_clean_c${campusId}_code`;
-    const KEY_SCRATCHED = `pv_clean_c${campusId}_scratched`;
+    const KEY_DISCOUNT = `pv_live_c${campusId}_disc`;
+    const KEY_NOTE = `pv_live_c${campusId}_note`;
+    const KEY_CODE = `pv_live_c${campusId}_code`;
+    const KEY_SCRATCHED = `pv_live_c${campusId}_scratched`;
 
     async function getCollegeReward() {
       let isMegaWinner = false;
 
       try {
-        // High-speed Abacus Counter API
-        const counterKey = `c${campusId}-scratches`;
-        const res = await fetch(`https://abacus.jasoncameron.dev/hit/premiumvintage-live/${counterKey}`);
-        const data = await res.json();
+        const endpoint = `https://api.keyvalue.xyz/get/pv_campus${campusId}_count`;
+        const postEndpoint = `https://api.keyvalue.xyz/set/pv_campus${campusId}_count`;
+        
+        const res = await fetch(endpoint);
+        let count = 0;
+        if (res.ok) {
+          const text = await res.text();
+          count = parseInt(text) || 0;
+        }
+        count += 1;
+        // Increment count in cloud
+        fetch(`${postEndpoint}/${count}`, { method: 'POST' }).catch(()=>{});
 
-        // 25th scanner gets 100% OFF on 1 Piece (Only 1 winner per college)
-        if (data.value === 25) {
+        // 25th scratcher gets 100% OFF on 1 Piece (Only 1 winner per college)
+        if (count === 25) {
           isMegaWinner = true;
         }
       } catch (e) {
@@ -340,7 +348,7 @@
       return offers[0];
     }
 
-    // 3. Scratch Execution
+    // 3. Scratch Initialization
     async function initApp() {
       const savedDiscount = localStorage.getItem(KEY_DISCOUNT);
       const savedNote = localStorage.getItem(KEY_NOTE);
