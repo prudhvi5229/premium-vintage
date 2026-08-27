@@ -184,7 +184,7 @@
 </head>
 <body>
 
-  <!-- 1. Intro Splash Screen -->
+  <!-- 1. Splash Welcome Screen -->
   <div id="welcome-screen">
     <img src="https://raw.githubusercontent.com/prudhvi5229/premium-vintage/main/logo.png" alt="Premium Vintage Logo" class="welcome-logo" onerror="this.style.display='none'">
     <div class="welcome-text">Welcome to</div>
@@ -220,7 +220,7 @@
   </div>
 
   <script>
-    // 1. Intro Screen Transition (2.5 Sec)
+    // 1. Splash Screen Timer (2.5 Sec)
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         const welcomeScreen = document.getElementById('welcome-screen');
@@ -234,26 +234,26 @@
       }, 2500);
     });
 
-    // 2. Campus Parameter & Fresh Reset Keys
+    // 2. Clean Campus Identification (Ensures clean campus ID: 1 or 2)
     const urlParams = new URLSearchParams(window.location.search);
-    const campusId = urlParams.get('c') || '1';
+    let rawCampus = urlParams.get('c') || '1';
+    const campusId = rawCampus.toString().replace(/[^0-9]/g, '') || '1';
 
-    // Reset local keys so your previous tests are cleared
-    const KEY_DISCOUNT = `pv_live_campus_${campusId}_disc`;
-    const KEY_NOTE = `pv_live_campus_${campusId}_note`;
-    const KEY_CODE = `pv_live_campus_${campusId}_code`;
-    const KEY_SCRATCHED = `pv_live_campus_${campusId}_scratched`;
+    // Unique storage keys per campus
+    const KEY_DISCOUNT = `pv_live_c${campusId}_disc`;
+    const KEY_NOTE = `pv_live_c${campusId}_note`;
+    const KEY_CODE = `pv_live_c${campusId}_code`;
+    const KEY_SCRATCHED = `pv_live_c${campusId}_scratched`;
 
     async function getCollegeReward() {
       let isMegaWinner = false;
 
       try {
-        // Fresh Counter for New Launch
         const counterName = `pv-live-campus-${campusId}-scratches`;
         const res = await fetch(`https://api.counterapi.dev/v1/premium-vintage-live/${counterName}/up`);
         const data = await res.json();
 
-        // Exactly the 25th customer/student in this college gets 100% OFF on 1 Piece
+        // 25th scratcher gets 100% OFF on 1 Piece (Only 1 student per college)
         if (data.count === 25) {
           isMegaWinner = true;
         }
@@ -265,11 +265,11 @@
         return {
           text: "100% OFF",
           note: "★ Valid on 1 Single Piece Only ★",
-          code: `PV100-CAMPUS${campusId}`
+          code: `PV100-C${campusId}`
         };
       }
 
-      // 10% & 15% (High probability ~90%), 20% & 25% (Rare ~10%)
+      // Standard offers: 10% & 15% (High chance ~90%), 20% & 25% (Low chance ~10%)
       const offers = [
         { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 55 },
         { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 35 },
@@ -286,7 +286,7 @@
       return offers[0];
     }
 
-    // 3. Independent Scratch System Setup
+    // 3. Independent Scratch System Initialization
     async function initApp() {
       const savedDiscount = localStorage.getItem(KEY_DISCOUNT);
       const savedNote = localStorage.getItem(KEY_NOTE);
@@ -318,7 +318,6 @@
         canvas.style.display = 'none';
         document.getElementById('statusMessage').style.display = 'block';
       } else {
-        // Metallic scratch texture
         ctx.fillStyle = '#1c1c1c';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
