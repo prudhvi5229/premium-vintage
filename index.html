@@ -17,7 +17,7 @@
       padding: 20px;
     }
 
-    /* 1. Welcome Splash Screen */
+    /* 1. Splash Welcome Screen */
     #welcome-screen {
       position: fixed;
       top: 0;
@@ -61,7 +61,7 @@
       to { transform: scale(1.03); opacity: 1; }
     }
 
-    /* 2. Main Scratch Page */
+    /* 2. Main Content Screen */
     #main-content {
       display: flex;
       flex-direction: column;
@@ -101,7 +101,7 @@
       letter-spacing: 1px;
     }
 
-    /* 3. Scratch Card Box */
+    /* 3. Scratch Card Container */
     .card-wrapper {
       position: relative;
       width: 310px;
@@ -151,7 +151,6 @@
       border: 1px dashed #d4af37;
     }
 
-    /* Scratch Layer */
     canvas {
       position: absolute;
       top: 0;
@@ -185,16 +184,16 @@
 </head>
 <body>
 
-  <!-- 1. Splash Welcome Screen -->
+  <!-- 1. Intro Splash Screen -->
   <div id="welcome-screen">
-    <img src="./logo.png" alt="Premium Vintage Logo" class="welcome-logo" onerror="this.style.display='none'">
+    <img src="https://raw.githubusercontent.com/prudhvi5229/premium-vintage/main/logo.png" alt="Premium Vintage Logo" class="welcome-logo" onerror="this.style.display='none'">
     <div class="welcome-text">Welcome to</div>
     <div class="brand-glow">PREMIUM VINTAGE</div>
   </div>
 
   <!-- 2. Main Content Screen -->
   <div id="main-content">
-    <img src="./logo.png" alt="Premium Vintage Logo" class="main-logo" onerror="this.style.display='none'">
+    <img src="https://raw.githubusercontent.com/prudhvi5229/premium-vintage/main/logo.png" alt="Premium Vintage Logo" class="main-logo" onerror="this.style.display='none'">
     <div class="store-badge">Premium Vintage</div>
     <div class="tagline-quote">
       ✨ "Scratch to unlock your exclusive offer & upgrade your style with Premium Vintage!" ✨
@@ -211,17 +210,17 @@
     </div>
 
     <div id="statusMessage" class="already-claimed" style="display: none;">
-      ✓ Offer already unlocked on this device. Present code at billing counter.
+      ✓ Offer already unlocked for this Campus. Present code at billing counter.
     </div>
 
     <div class="terms">
       • Show this code at billing counter to claim your discount.<br>
-      • Valid for single scratch per device.
+      • Valid for single scratch per Campus QR code.
     </div>
   </div>
 
   <script>
-    // 1. Intro Splash Screen Timer (2.5 Sec)
+    // 1. Intro Screen Transition (2.5 Sec)
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         const welcomeScreen = document.getElementById('welcome-screen');
@@ -235,20 +234,26 @@
       }, 2500);
     });
 
-    // 2. Identify College Campaign from URL (?c=1 or ?c=2)
+    // 2. Campus Parameter & Fresh Reset Keys
     const urlParams = new URLSearchParams(window.location.search);
     const campusId = urlParams.get('c') || '1';
+
+    // Reset local keys so your previous tests are cleared
+    const KEY_DISCOUNT = `pv_live_campus_${campusId}_disc`;
+    const KEY_NOTE = `pv_live_campus_${campusId}_note`;
+    const KEY_CODE = `pv_live_campus_${campusId}_code`;
+    const KEY_SCRATCHED = `pv_live_campus_${campusId}_scratched`;
 
     async function getCollegeReward() {
       let isMegaWinner = false;
 
       try {
-        // Track live count & pick the 100% OFF single winner
-        const counterName = `pv-campus-${campusId}-scratches`;
-        const res = await fetch(`https://api.counterapi.dev/v1/premium-vintage/${counterName}/up`);
+        // Fresh Counter for New Launch
+        const counterName = `pv-live-campus-${campusId}-scratches`;
+        const res = await fetch(`https://api.counterapi.dev/v1/premium-vintage-live/${counterName}/up`);
         const data = await res.json();
 
-        // Exactly the 25th scratcher gets 100% OFF on 1 Piece
+        // Exactly the 25th customer/student in this college gets 100% OFF on 1 Piece
         if (data.count === 25) {
           isMegaWinner = true;
         }
@@ -264,7 +269,7 @@
         };
       }
 
-      // Standard offers: 10% & 15% (High probability), 20% & 25% (Low probability)
+      // 10% & 15% (High probability ~90%), 20% & 25% (Rare ~10%)
       const offers = [
         { text: "10% OFF", note: "Valid on Total Bill", code: `PV10-C${campusId}`, weight: 55 },
         { text: "15% OFF", note: "Valid on Total Bill", code: `PV15-C${campusId}`, weight: 35 },
@@ -281,12 +286,12 @@
       return offers[0];
     }
 
-    // 3. One Scratch Per Device & UI Execution
+    // 3. Independent Scratch System Setup
     async function initApp() {
-      const savedDiscount = localStorage.getItem('pv_user_discount');
-      const savedNote = localStorage.getItem('pv_user_note');
-      const savedCode = localStorage.getItem('pv_user_code');
-      const isAlreadyScratched = localStorage.getItem('pv_has_scratched');
+      const savedDiscount = localStorage.getItem(KEY_DISCOUNT);
+      const savedNote = localStorage.getItem(KEY_NOTE);
+      const savedCode = localStorage.getItem(KEY_CODE);
+      const isAlreadyScratched = localStorage.getItem(KEY_SCRATCHED);
 
       const canvas = document.getElementById('scratchCanvas');
       const ctx = canvas.getContext('2d');
@@ -304,16 +309,16 @@
         document.getElementById('pieceNote').innerText = reward.note;
         document.getElementById('couponCode').innerText = generatedCode;
 
-        localStorage.setItem('pv_user_discount', reward.text);
-        localStorage.setItem('pv_user_note', reward.note);
-        localStorage.setItem('pv_user_code', generatedCode);
+        localStorage.setItem(KEY_DISCOUNT, reward.text);
+        localStorage.setItem(KEY_NOTE, reward.note);
+        localStorage.setItem(KEY_CODE, generatedCode);
       }
 
       if (isAlreadyScratched === 'true') {
         canvas.style.display = 'none';
         document.getElementById('statusMessage').style.display = 'block';
       } else {
-        // Dark metallic scratch layer
+        // Metallic scratch texture
         ctx.fillStyle = '#1c1c1c';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -342,7 +347,7 @@
         ['mousedown', 'touchstart'].forEach(event => {
           canvas.addEventListener(event, (e) => {
             isDrawing = true;
-            localStorage.setItem('pv_has_scratched', 'true');
+            localStorage.setItem(KEY_SCRATCHED, 'true');
             scratch(e);
           });
         });
@@ -356,7 +361,7 @@
         ['mouseup', 'touchend', 'mouseleave'].forEach(event => {
           window.addEventListener(event, () => {
             isDrawing = false;
-            if (localStorage.getItem('pv_has_scratched') === 'true') {
+            if (localStorage.getItem(KEY_SCRATCHED) === 'true') {
               document.getElementById('statusMessage').style.display = 'block';
             }
           });
